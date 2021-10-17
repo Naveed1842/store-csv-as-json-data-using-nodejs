@@ -1,17 +1,15 @@
 const express = require("express");
 const app = express();
-const bodyparser = require("body-parser");
 const mysql = require("mysql");
-//use express static folder
-app.use(express.static("./public"));
+var cors = require("cors");
+var corsOptions = {
+  origin: "http://localhost:4200",
+};
 
-// body-parser middleware use
-app.use(bodyparser.json());
-app.use(
-  bodyparser.urlencoded({
-    extended: true,
-  })
-);
+app.use(express.json());
+app.use(cors(corsOptions));
+app.use(express.urlencoded({ extended: true }));
+
 // Database connection
 const db = mysql.createConnection({
   host: "localhost",
@@ -28,11 +26,12 @@ db.connect((err) => {
 });
 
 //route for Home page
+
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
-app.post("/", function (req, res) {
+app.post("/", cors(corsOptions), function (req, res) {
   var jsondata = req.body;
   var values = [];
   for (var i = 0; i < jsondata.length; i++)
@@ -42,7 +41,6 @@ app.post("/", function (req, res) {
       jsondata[i].submit_date,
       jsondata[i].sell_price,
     ]);
-
   db.query(
     "INSERT INTO sell_invoices_tbl (id, amount,submit_date,sell_price) VALUES ?",
     [values],
